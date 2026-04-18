@@ -6,7 +6,7 @@ import Overrides from "#app/overrides";
 import { handleTutorial, Tutorial } from "#app/tutorial";
 import { speciesEggMoves } from "#balance/moves/egg-moves";
 import { pokemonPrevolutions } from "#balance/pokemon-evolutions";
-import { pokemonFormLevelMoves, pokemonSpeciesLevelMoves } from "#balance/pokemon-level-moves";
+import { speciesData } from "#balance/species/species-data";
 import {
   getPassiveCandyCount,
   getSameSpeciesEggCandyCounts,
@@ -2875,8 +2875,9 @@ export class StarterSelectUiHandler extends MessageUiHandler {
     const updatedMoveset = starterMoveset.slice() as StarterMoveset;
     const formIndex = globalScene.gameData.getSpeciesDexAttrProps(this.lastSpecies, this.dexAttrCursor).formIndex;
     const starterDataEntry = globalScene.gameData.starterData[speciesId];
+    const formKey = this.lastSpecies.forms[formIndex].formKey;
     // species has different forms
-    if (pokemonFormLevelMoves.hasOwnProperty(speciesId)) {
+    if (speciesData[speciesId].formLevelMoves?.[formKey]) {
       // Species has forms with different movesets
       if (!starterDataEntry.moveset || Array.isArray(starterDataEntry.moveset)) {
         starterDataEntry.moveset = {};
@@ -4167,16 +4168,8 @@ export class StarterSelectUiHandler extends MessageUiHandler {
 
         this.pokemonNatureText.setText(getNatureName(natureIndex as unknown as Nature, true, true, false));
 
-        let levelMoves: LevelMoves;
-        if (
-          pokemonFormLevelMoves.hasOwnProperty(species.speciesId)
-          && formIndex
-          && pokemonFormLevelMoves[species.speciesId].hasOwnProperty(formIndex)
-        ) {
-          levelMoves = pokemonFormLevelMoves[species.speciesId][formIndex];
-        } else {
-          levelMoves = pokemonSpeciesLevelMoves[species.speciesId];
-        }
+        const formKey = species.forms?.[formIndex ?? 0]?.formKey;
+        const levelMoves: LevelMoves = species.getLevelMoves(formKey);
         this.speciesStarterMoves.push(...levelMoves.filter(lm => lm[0] > 0 && lm[0] <= 5).map(lm => lm[1]));
         if (speciesEggMoves.hasOwnProperty(species.speciesId)) {
           for (let em = 0; em < 4; em++) {
